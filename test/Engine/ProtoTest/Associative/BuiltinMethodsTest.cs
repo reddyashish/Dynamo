@@ -1070,6 +1070,7 @@ r = Dictionary.ValueAtKey(a, ""nonexist"");
        }
 
         [Test]
+        [Category("Failure")]
         public void TestTryGetValuesFromDictionary09()
         {
             string code = @"
@@ -1100,6 +1101,7 @@ r2 = Dictionary.ValueAtKey(c, ""out"");
         }
 
         [Test]
+        [Category("Failure")]
         public void TestTryGetValuesFromDictionary11()
         {
             string code = @"
