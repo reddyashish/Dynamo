@@ -1123,5 +1123,18 @@ k = GetKeys(x);";
             var mirror = thisTest.RunScriptSource(code);
             thisTest.Verify("k", null);
         }
+
+        [Test]
+        public void TestEmptyNestedLists()
+        {
+            string code = @"
+pt = Point.ByCoordinates(0,0,0);
+c = Circle.ByCenterPointRadius(pt,1);
+l = [[pt]];
+px = Point.X(l);
+";
+            var mirror = thisTest.RunScriptSource(code);
+            thisTest.Verify("px", new object[] { new object[] { 0 } });
+        }
     }
 }
