@@ -51,8 +51,8 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="IronPython.SQLite, Version=2.7.9.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
-      <HintPathFalsesrc\packages\IronPython.2.7.9\lib\net45\IronPython.SQLite.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\src\packages\IronPython.2.7.9\lib\net45\IronPython.SQLite.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="IronPython.Wpf, Version=2.7.9.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <HintPath>..\..\..\src\packages\IronPython.2.7.9\lib\net45\IronPython.Wpf.dll</HintPath>
