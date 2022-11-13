@@ -13,6 +13,7 @@ using Dynamo.Configuration;
 using Dynamo.Core;
 using Dynamo.DocumentationBrowser.Properties;
 using Dynamo.Graph;
+using Dynamo.Graph.Annotations;
 using Dynamo.Graph.Workspaces;
 using Dynamo.Logging;
 using Dynamo.Selection;
@@ -177,6 +178,14 @@ namespace Dynamo.DocumentationBrowser
 
         private void OnInsertFile(object sender, InsertDocumentationLinkEventArgs e)
         {
+            if (e.Data.Equals(Resources.FileNotFoundFailureMessage))
+            {
+                var message = String.Format(Resources.ToastFileNotFoundLocationNotificationText, e.Name);
+                DynamoViewModel.MainGuideManager.CreateRealTimeInfoWindow(message, true);
+
+                return;
+            }
+
             if (DynamoViewModel.Model.CurrentWorkspace is HomeWorkspaceModel)
             {
                 var homeWorkspace = DynamoViewModel.Model.CurrentWorkspace as HomeWorkspaceModel;
@@ -218,7 +227,6 @@ namespace Dynamo.DocumentationBrowser
                 group.DissolveNestedGroupsCommand.Execute(null);
             }
 
-           
             foreach (var group in hostGroups)
             {
                 selection.RemoveAll(x => group.AnnotationModel.ContainsModel(x as ModelBase));
@@ -229,19 +237,26 @@ namespace Dynamo.DocumentationBrowser
             DoEvents();
 
             var annotation = this.DynamoViewModel.Model.CurrentWorkspace.AddAnnotation(Resources.InsertedGroupSubTitle, Guid.NewGuid());
-            annotation.AnnotationText = graphName;
-            DoEvents();
+            if (annotation != null)
+            {
+                annotation.AnnotationText = graphName;
+                DoEvents();
 
-            var annotationViewModel = DynamoViewModel.CurrentSpaceViewModel.Annotations
-                    .First(x => x.AnnotationModel == annotation);
+                var annotationViewModel = DynamoViewModel.CurrentSpaceViewModel.Annotations
+                        .First(x => x.AnnotationModel == annotation);
 
-            var styleItem = annotationViewModel.GroupStyleList.First(x => x.Name.Equals(DynamoProperties.Resources.GroupStyleDefaultReview));
-            var groupStyleItem = new GroupStyleItem {Name = styleItem.Name, HexColorString = styleItem.HexColorString};
-            annotationViewModel.UpdateGroupStyle(groupStyleItem);
+                var styleItem = annotationViewModel.GroupStyleList.First(x => x.Name.Equals(DynamoProperties.Resources.GroupStyleDefaultReview));
+                var groupStyleItem = new GroupStyleItem {Name = styleItem.Name, HexColorString = styleItem.HexColorString};
+                annotationViewModel.UpdateGroupStyle(groupStyleItem);
 
-            DynamoSelection.Instance.ClearSelection();
-            DynamoSelection.Instance.Selection.AddRange(annotation.Nodes);
-            DoEvents();
+                DynamoSelection.Instance.ClearSelection();
+                DynamoSelection.Instance.Selection.AddRange(annotation.Nodes);
+                if(annotation.HasNestedGroups)
+                    DynamoSelection.Instance.Selection.AddRange(annotation.Nodes.OfType<AnnotationModel>().SelectMany(x => x.Nodes));
+
+                DoEvents();
+            }
+
         }
 
         private List<AnnotationViewModel> GetAllHostingGroups(List<AnnotationViewModel> existingGroups)
@@ -251,7 +266,6 @@ namespace Dynamo.DocumentationBrowser
             foreach (var group in this.DynamoViewModel.CurrentSpaceViewModel.Annotations)
             {
                 if (existingGroups.Contains(group)) continue;
-
                 if (group.AnnotationModel.HasNestedGroups)
                 {
                     hostGroups.Add(group);
@@ -267,7 +281,18 @@ namespace Dynamo.DocumentationBrowser
 
             foreach (var selected in DynamoSelection.Instance.Selection)
             {
+                foreach (var group in this.DynamoViewModel.CurrentSpaceViewModel.Annotations)
+                {
+                    if (group.Nodes.Contains(selected))
+                    {
+                        if(!selection.Contains(group.AnnotationModel))
+                            selection.Add(group.AnnotationModel);
+                        goto SkipSelection;
+                    }
+                }
                 selection.Add(selected);
+                SkipSelection:
+                    continue;
             }
 
             return selection;
