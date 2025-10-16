@@ -394,7 +394,6 @@ namespace DSOffice
                     {
                         if (cell.CellValue.TryGetInt(out var index))
                         {
-                            //return sharedStringTable.ElementAt(index).InnerText;
                             return GetSharedStringText(sharedStringTable.ElementAt(index));
                         }
                     }
@@ -434,9 +433,7 @@ namespace DSOffice
         }
 
         /// <summary>
-        /// Extracts text content from a SharedStringItem while excluding phonetic runs.
-        /// Excel stores phonetic guides (furigana) for Kanji characters in PhoneticRun elements,
-        /// which should not be included in the text output.
+        /// Extracts text content from a SharedStringItem while excluding phonetic guides.
         /// </summary>
         /// <param name="sharedStringItem">The SharedStringItem to extract text from</param>
         /// <returns>The text content without phonetic annotations</returns>
@@ -448,19 +445,18 @@ namespace DSOffice
             }
 
             // Extract text from Text elements, excluding those within PhoneticRun elements
-            var textElements = sharedStringItem.Descendants<Text>()
-                .Where(t => !IsDescendantOfPhoneticRun(t));
+            var textElements = sharedStringItem.Descendants<Text>().Where(t => !IsInsidePhoneticRun(t));
 
             return string.Concat(textElements.Select(t => t.Text));
         }
 
         /// <summary>
-        /// Checks if a text element is a descendant of a PhoneticRun element.
+        /// Checks if a text element is inside a PhoneticRun element.
         /// PhoneticRun elements contain phonetic guides (furigana) that should be excluded.
         /// </summary>
         /// <param name="textElement">The Text element to check</param>
-        /// <returns>True if the text is within a PhoneticRun, false otherwise</returns>
-        private static bool IsDescendantOfPhoneticRun(Text textElement)
+        /// <returns>True if the text is inside a PhoneticRun, false otherwise</returns>
+        private static bool IsInsidePhoneticRun(Text textElement)
         {
             var parent = textElement.Parent;
             while (parent != null)
